@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+key.txt
+*.key
+scores.db

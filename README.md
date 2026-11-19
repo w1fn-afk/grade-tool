@@ -1,84 +1,79 @@
 # 成绩统计小工具
 
-用 Python 写的第一个完整小项目：读成绩文件 → 算统计 → 把结果写回文件。
+一个用 Python 写的完整小项目，经历了三代演进：
 
-只用 Python 自带的标准库，**没有第三方依赖**，全程只用变量、列表、函数、for、if、字符串处理、文件读写这些基础语法。
+1. **v1（txt 版）**：读 `data/scores.txt` → 算平均分/最高分/不及格 → 写报告
+2. **v2（SQLite 版）**：数据存进 SQLite 数据库，用 SQL 查询、分组、排序
+3. **v3（LLM 版）**：把统计结果发给大模型，自动生成中文分析摘要
 
-## 它能干什么
+尽量只用 Python 自带标准库（v3 发 HTTP 请求用到 `requests`）。
 
-- 从 `data/scores.txt` 读取学生的姓名和分数（每行一个，逗号隔开）
-- 自动算出 **平均分、最高分、不及格人数**
-- 在终端打印摘要，同时把完整报告写到 `output/report.txt`
+## 各版本能干什么
+
+### v1 · `grade_tool.py`（txt 版）
+- 从 `data/scores.txt` 读取学生姓名和分数（每行一个，逗号隔开）
+- 算出平均分、最高分、不及格人数
+- 终端打印摘要，并把完整报告写到 `output/report.txt`
+
+### v2 · `grade_tool_sqlite.py`（SQLite 版）
+- 把成绩存进 `data/scores.db`（SQLite，Python 自带，零安装）
+- 用 SQL 演示六个关键字：`SELECT / WHERE / GROUP BY / JOIN / ORDER BY / LIMIT`
+- 额外统计及格率（及格人数 ÷ 总人数）
+
+### v3 · `llm_summary.py`（LLM 版）
+- 读取统计结果，POST 给 OpenAI 兼容接口（本项目用 AMD 开发者平台）
+- 大模型返回一段中文点评，自动生成「人话分析」
+- key 与代码分离（本地 `key.txt` + `.gitignore` 保护）
+- 多模型自动降级：一个满负载（429）自动换下一个
 
 ## 项目结构
 
 ```
 grade-tool/
-├── grade_tool.py          # 主程序（5 个函数 + 主流程）
-├── test_grade_tool.py     # 验收脚本
+├── grade_tool.py          # v1 主程序（txt → 统计 → 报告）
+├── grade_tool_sqlite.py   # v2 SQLite 版（建表/查询/分组/JOIN/排序/及格率）
+├── llm_summary.py         # v3 LLM 版（调大模型生成分析摘要）
+├── test_grade_tool.py     # v1 验收脚本
+├── key.txt                # 本地 key（被 .gitignore 忽略，不上传）
 ├── data/
-│   └── scores.txt         # 输入数据（10 条示例）
-├── output/
-│   └── .gitkeep           # 占位文件，保证 Git 跟踪这个文件夹
-└── README.md              # 本文件
+│   └── scores.txt         # v1 输入数据
+└── output/
+    └── .gitkeep
 ```
 
 ## 怎么运行
 
-在项目文件夹里打开终端：
-
 ```bash
+# v1：txt 版
 python grade_tool.py
+
+# v2：SQLite 版
+python grade_tool_sqlite.py
+
+# v3：LLM 版（需先在 key.txt 填入 API key）
+python llm_summary.py
 ```
 
-跑验收测试：
+跑 v1 的验收脚本：
 
 ```bash
 python test_grade_tool.py
 ```
 
-全部显示 `[通过]`，就说明做完了。
+## 安全说明：key 不上仓库
+
+`llm_summary.py` 需要的 API key 放在本地 `key.txt`；`.gitignore` 已忽略 `key.txt`、`*.key`、`scores.db`，**不会推到 GitHub**。程序会先读环境变量，没有再读 `key.txt`。
 
 ## 简历上怎么写
 
-> **成绩统计工具**（Python，独立开发）
-> - 使用 Python 标准库实现文本成绩数据的批量读取与解析，支持结构化提取姓名与分数；
-> - 封装平均分、最高分、不及格人数等统计函数，对 10 条样本数据完成自动化计算；
-> - 实现统计报告的本地持久化输出，将结果格式化写入文件；
-> - 编写验收脚本覆盖核心函数与边界情况（如全负数场景），保证计算正确。
+> **成绩统计工具**（Python，独立开发，含 SQLite + LLM 集成）
+> - 使用 Python 标准库实现成绩数据的批量读取、统计与报告生成；
+> - 升级为 SQLite 存储，用 SQL 完成条件查询、分组统计（GROUP BY）、多表关联（JOIN）与排序，并统计及格率；
+> - 对接 OpenAI 兼容大模型接口，将统计结果自动生成中文分析摘要，实现「数据 → 结论」的自动化；
+> - key 与代码分离并纳入 .gitignore 保护，实现多模型降级重试，保证调用稳定性。
 
-四行分别对应：**数据读取 → 核心算法 → 结果输出 → 测试**。面试时你要能讲清每一行代码为什么这么写。
+## 继续升级的方向
 
-## 怎么挂到 GitHub（Windows 详细步骤）
-
-1. 注册并登录 [GitHub](https://github.com)
-2. 下载安装 [Git](https://git-scm.com/download/win)（一路默认安装即可）
-3. 在 GitHub 网页右上角点 **+** → **New repository**
-   - Repository name 填 `grade-tool`
-   - 其他保持默认，点 **Create repository**
-4. 在项目文件夹里打开终端（或 Git Bash），依次敲这四行：
-
-```bash
-git init
-git add .
-git commit -m "第一个 Python 小项目：成绩统计工具"
-git branch -M main
-```
-
-5. 再去 GitHub 仓库页面复制那串地址（形如 `https://github.com/你的用户名/grade-tool.git`），继续敲：
-
-```bash
-git remote add origin 你的仓库地址
-git push -u origin main
-```
-
-6. 刷新 GitHub 页面，代码就上去了。
-
-## 怎么继续升级这个项目
-
-等你学了 day5 之后，可以回来加这些功能，让简历项目更厚：
-
-- 学**列表推导式**后：把"取所有分数"的循环压缩成一行
-- 学**异常处理**后：处理"文件不存在""分数不是数字"这些情况
-- 学 **CSV** 后：把数据从 txt 换成 csv 格式
-- 学**命令行参数**后：让文件名可以从命令行传入，而不是写死在代码里
+- 异常处理：处理文件不存在、分数不是数字、接口超时等情况
+- 用 `argparse` 让文件名可以从命令行传入
+- 把统计结果同时导出成 CSV / Excel
