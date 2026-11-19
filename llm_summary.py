@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-给 grade-tool 加一句大模型：把统计结果丢给 AMD 开发者平台（OpenAI 兼容接口），让它说人话。
-这一个文件，就让简历上的项目从「脚本」升级成「LLM 应用」。
+成绩统计工具 · LLM 版
 
-key 放在同目录的 key.txt（一行，只写 rc- 开头那串），已被 .gitignore 挡住，不会推到 GitHub。
-换平台 / 换模型：只改下面「配置」三行。
+把 grade_tool 的统计结果通过 OpenAI 兼容接口发给大模型，
+由模型生成一段中文分析摘要，补上纯数值统计给不出的结论。
+
+key 优先从环境变量读取（LLM_API_KEY / DEEPSEEK_API_KEY），
+找不到再读同目录 key.txt；key.txt 已被 .gitignore 忽略，不会进入仓库。
+切换平台或模型只需修改下方「配置」区域。
 """
 import os
 import sys
@@ -57,7 +60,7 @@ def summarize(stats_text, api_key):
             print("key 无效或过期（401）。检查 key.txt 里的 key。")
             sys.exit(1)
         if resp.status_code == 200:
-            # 字符串 -> 字典 -> 取内容（day11 的 loads 那一步）
+            # 响应体是 JSON 字符串：转成字典，再取 choices[0].message.content
             return resp.json()["choices"][0]["message"]["content"]
 
         print("%s 暂时不可用（%d），换下一个模型……" % (model, resp.status_code))

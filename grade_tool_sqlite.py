@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-grade-tool 升级版：把数据从 txt 换成 SQLite 数据库
+成绩统计工具 · SQLite 版
 
-为什么要升级？
-- 简历上「数据库」这一栏现在还是空的，SQL 是算法/应用岗的隐性门槛。
-- 这个文件只用 Python 自带的标准库 sqlite3（不用 pip 装任何东西），
-  把上一版 grade_tool 的「读 txt -> 统计」升级成「查数据库 -> 统计」。
+数据存进 SQLite 数据库（Python 内置 sqlite3，无需安装任何依赖），
+把「读文本文件做统计」改成「查数据库做统计」。
 
-SQL 面试只考六个关键字，本文件把它们全用一遍：
-  SELECT    查什么
-  WHERE     按条件筛
+为覆盖常用的查询写法，本文件依次演示六个 SQL 关键字：
+  SELECT    查询字段
+  WHERE     条件筛选
   GROUP BY  分组统计
-  JOIN      拼表
+  JOIN      多表关联
   ORDER BY  排序
-  LIMIT     只要前几条
+  LIMIT     限制返回条数
 
-先跑起来看输出，再逐段读注释。
+运行方式：python grade_tool_sqlite.py
 """
 import os
 import sqlite3
@@ -109,7 +107,7 @@ def demo_where(conn):
 
 
 def demo_groupby(conn):
-    """GROUP BY：按班级分组统计。这是简历上「按班级分组统计」的核心。"""
+    """GROUP BY：按班级分组统计。"""
     cur = conn.cursor()
     cur.execute("""
         SELECT class_id, COUNT(*), AVG(score), MAX(score)

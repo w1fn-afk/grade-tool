@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""验收脚本：不用 pytest，只用 day1 学过的 if + print，你看得懂。
+"""验收脚本：不依赖 pytest，用 print 逐条检查各函数的行为。
 
-运行方法：python test_grade_tool.py
-全部显示 [通过]，你的项目就做完了。
+运行方式：python test_grade_tool.py
+每条显示 [通过] 即表示该函数符合预期。
 """
 
 from grade_tool import read_scores, average, max_score, count_failed
